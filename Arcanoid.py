@@ -10,28 +10,46 @@ import keyboard
 
 class Arcanoid:
     def __init__(self):
-        # paddle settings
-        self.paddle_w = 330
-        self.paddle_h = 35
-        self.paddle_speed = 15
-        self.paddle = pygame.Rect(WIDTH // 2 - self.paddle_w // 2, HEIGHT - self.paddle_h - 10, self.paddle_w,
-                                  self.paddle_h)
-        self.paddle_collision = pygame.Rect(WIDTH // 2 - self.paddle_w // 2 - 20,
-                                            HEIGHT - self.paddle_h - 10 - 20,
-                                            self.paddle_w + 20,
-                                            self.paddle_h)
-        # ball settings
-        self.ball_radius = 20
-        self.ball_speed = 6
-        self.ball_rect = int(self.ball_radius * 2 ** 0.5)
-        self.ball = pygame.Rect(rnd(self.ball_rect, WIDTH - self.ball_rect), HEIGHT // 2, self.ball_rect,
-                                self.ball_rect)
-        self.dx, self.dy = 1, -1
+        self.h = db.HEIGHT * db.k_screen
+        self.w = self.h * 1.5
+
+        self.left = (db.WIDTH - self.w) // 2
+        self.top = (db.HEIGHT - self.h) // 2
+        print(self.w, self.h, self.left, self.top)
+
         # blocks settings
-        self.block_list = [pygame.Rect(10 + 120 * i, 10 + 70 * j, 100, 50) for i in range(10) for j in range(4)]
+        self.block_w = self.w // 10
+        self.block_h = self.h // 10
+        print(self.block_h, self.block_w)
+        self.block_list = [
+            pygame.Rect(self.left + self.block_w * i, self.top + self.block_h * j, self.block_w - 10, self.block_h - 10)
+            for i in range(10) for j in range(4)]
         self.color_list = [(rnd(30, 256), rnd(30, 256), rnd(30, 256)) for i in range(10) for j in range(4)]
 
+        # paddle settings
+        self.paddle_w = self.block_w * 2 + 10
+        self.paddle_h = self.block_h // 2
+        self.paddle_speed = self.w // 80
+        self.paddle = pygame.Rect(WIDTH // 2 - self.paddle_w // 2, HEIGHT - self.top - self.paddle_h - 10,
+                                  self.paddle_w,
+                                  self.paddle_h)
+        self.paddle_collision = pygame.Rect(WIDTH // 2 - self.paddle_w // 2 - 20,
+                                            HEIGHT - self.top - self.paddle_h - 10 - 20,
+                                            self.paddle_w + 20,
+                                            self.paddle_h)
+
+        # ball settings
+        self.ball_radius = self.block_h * 0.3
+        self.ball_speed = self.w // 200
+        self.ball_rect = int(self.ball_radius * 2 ** 0.5)
+        self.ball = pygame.Rect(rnd(self.ball_rect + self.left, WIDTH - self.ball_rect - self.left), HEIGHT // 2,
+                                self.ball_rect,
+                                self.ball_rect)
+        self.dx, self.dy = 1, -1
+
     def draw(self):
+        pygame.draw.rect(db.screen, (255, 255, 255),
+                         (int(self.left - 20), int(self.top - 20), int(self.w + 40), int(self.h + 40)), 1)
         [pygame.draw.rect(db.screen, self.color_list[color], block) for color, block in enumerate(self.block_list)]
         pygame.draw.rect(db.screen, pygame.Color('darkorange'), self.paddle)
         pygame.draw.circle(db.screen, pygame.Color('white'), self.ball.center, self.ball_radius)
@@ -60,10 +78,10 @@ class Arcanoid:
 
     def ball_collision(self):
         # collision left right
-        if self.ball.centerx < self.ball_radius or self.ball.centerx > WIDTH - self.ball_radius:
+        if self.ball.centerx < self.ball_radius + self.left or self.ball.centerx > WIDTH - self.ball_radius - self.left:
             self.dx = -self.dx
         # collision top
-        if self.ball.centery < self.ball_radius:
+        if self.ball.centery < self.ball_radius + self.top:
             self.dy = -self.dy
         # collision paddle
         if self.ball.colliderect(self.paddle) and self.dy > 0:
@@ -79,48 +97,32 @@ class Arcanoid:
             pygame.draw.rect(db.screen, hit_color, hit_rect)
             db.fps += 2
 
-    def control(self, hand_pos_x):
-        if hand_pos_x - 165 > 0 and hand_pos_x + 165 < WIDTH:
-            self.paddle.centerx = hand_pos_x
-            self.paddle_collision.centerx = hand_pos_x
-        else:
-            if hand_pos_x > WIDTH / 2:
-                self.paddle.centerx = WIDTH - 165
-                self.paddle_collision.centerx = WIDTH - 165
-            else:
-                self.paddle.centerx = 165
-                self.paddle_collision.centerx = 165
+    def control(self):
+        # if hand_pos_x - 165 > 0 and hand_pos_x + 165 < WIDTH:
+        #     self.paddle.centerx = hand_pos_x
+        #     self.paddle_collision.centerx = hand_pos_x
+        # else:
+        #     if hand_pos_x > WIDTH / 2:
+        #         self.paddle.centerx = WIDTH - 165
+        #         self.paddle_collision.centerx = WIDTH - 165
+        #     else:
+        #         self.paddle.centerx = 165
+        #         self.paddle_collision.centerx = 165
 
-        # if keyboard.is_pressed('Left') and self.paddle.left > 0:
-        #     self.paddle.left -= self.paddle_speed
-        # if keyboard.is_pressed('Right') and self.paddle.right < WIDTH:
-        #     self.paddle.right += self.paddle_speed
+        if keyboard.is_pressed('Left') and self.paddle.left > self.left:
+            self.paddle.left -= self.paddle_speed
+        if keyboard.is_pressed('Right') and self.paddle.right < WIDTH - self.left - 12:
+            self.paddle.right += self.paddle_speed
 
     def win_game_over(self):
-        if self.ball.bottom > HEIGHT:
+        if self.ball.bottom > HEIGHT - self.top:
             print('GAME OVER!')
             time.sleep(3)
             sys.exit()
-            # db.step = 1
-            # # ========================================
-            # db.game = False
-            # db.rule = True
-            # db.pause = False
-            # db.hand_start = False
-            # db.can_play = False
-            # ========================================
         elif not len(self.block_list):
             print('WIN!!!')
             time.sleep(3)
             sys.exit()
-            # db.step = 1
-            # # ========================================
-            # db.game = False
-            # db.rule = True
-            # db.pause = False
-            # db.hand_start = False
-            # db.can_play = False
-            # ========================================
 
     def run(self):
         # control
