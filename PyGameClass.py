@@ -32,6 +32,9 @@ class Start:
         self.serial_port = Serial_Arduino()
         self.timer = Timer()
 
+        self.x = int(self.h)
+        self.y = int(self.w)
+
     def init(self):
         pygame.init()
         db.screen = pygame.display.set_mode((db.WIDTH, db.HEIGHT))
@@ -46,23 +49,33 @@ class Start:
             db.screen.blit(text, (db.WIDTH // 2 - 50, db.HEIGHT // 2 - 100))
 
     def draw_timer_home(self):
-        text = self.font_timer_home.render(str(db.seconds), True, (15, 15, 255))
+        sqr = pygame.Surface((int(self.w // 2), int(self.h)))
+        sqr.fill((10, 10, 10))
+        sqr.set_alpha(120)
+        db.screen.blit(sqr, (int(db.WIDTH // 2), (int(self.top))))
+
+        text = self.font_timer_home.render(str(db.seconds), True, (255, 255, 255))
         scale = pygame.transform.scale(
-            text, (self.w // 2, self.h))
+            text, (self.w // 3, self.w // 3))
 
         scale_rect = scale.get_rect(
-            center=(db.WIDTH // 2 + scale.get_width() // 2, db.HEIGHT // 2))
+            center=(self.w - scale.get_width() // 3, self.h - scale.get_height() // 3))
 
         db.screen.blit(scale, scale_rect)
         # db.screen.blit(text, (db.WIDTH - self.left * 4, db.HEIGHT / 2 - self.top * 2.8))
 
     def draw_rules(self):
+        sqr = pygame.Surface((int(self.w // 3), int(self.w // 3)))
+        sqr.fill((10, 10, 10))
+        sqr.set_alpha(120)
+        db.screen.blit(sqr, (int(self.w - sqr.get_width()), (int(self.h - sqr.get_height()))))
+
         surf = pygame.image.load("img\pointing_up_negate.png")
         scale = pygame.transform.scale(
-            surf, (self.w // 2, self.w // 2))
+            surf, (self.w // 3, self.w // 3))
 
         scale_rect = scale.get_rect(
-            center=(db.WIDTH // 2 + scale.get_width() // 2, db.HEIGHT // 2))
+            center=(self.w - scale.get_width() // 3, self.h - scale.get_height() // 3))
 
         db.screen.blit(scale, scale_rect)
         # for i in range(-150, 150):
@@ -101,13 +114,13 @@ class Start:
     def draw_home_screen(self):
         pygame.draw.rect(db.screen, (255, 255, 255),
                          (int(self.left - 20), int(self.top - 20), int(self.w + 40), int(self.h + 40)), 1)
-        pygame.draw.line(db.screen, (255, 255, 255), (db.WIDTH // 2, self.top - 20),
-                         (db.WIDTH // 2, db.HEIGHT - self.top + 19), 1)
+        # pygame.draw.line(db.screen, (255, 255, 255), (db.WIDTH // 2, self.top - 20),
+        #                  (db.WIDTH // 2, db.HEIGHT - self.top + 19), 1)
         # Изображение с камеры
         frame = cv2.cvtColor(self.hand.get_img(), cv2.COLOR_BGR2RGB)
         frame = np.rot90(frame)
         frame = cv2.flip(frame, 0)
-        frame = cv2.resize(frame, (345, 460))
+        frame = cv2.resize(frame, (self.x, self.y))
         frame = pygame.surfarray.make_surface(frame)
         db.screen.blit(frame, (int(self.left), int(self.top)))
         # pygame.draw.rect(db.screen, (100, 165, 15),
@@ -119,9 +132,9 @@ class Start:
                 db.screen.fill((0, 0, 0))
                 copy.run()
                 copy.control(db.hand['lmList'][8][:2][0])
-                # print(self.clock.get_fps())
+                print(self.clock.get_fps())
                 pygame.display.flip()
-                self.clock.tick(30)
+                self.clock.tick(db.fps)
 
     def game(self, copy):
 
@@ -156,7 +169,6 @@ class Start:
                     db.step = "timer_off"
                     db.off = True
                 elif db.hand_here:
-                    print("here")
                     db.off = False
 
             elif db.step == "start_game_timer":
