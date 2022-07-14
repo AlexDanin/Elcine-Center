@@ -17,3 +17,18 @@ class Timer:
         for i in range(number, 0, -1):
             sl(1)
         db.rule = False
+
+    def timer_off(self):
+        i = 10
+        while i > 0:
+            if db.off:
+                i -= 1
+                sl(1)
+                print(i)
+            else:
+                print("break")
+                break
+
+        if i <= 0:
+            db.push = True
+

@@ -97,32 +97,28 @@ class Arcanoid:
             pygame.draw.rect(db.screen, hit_color, hit_rect)
             db.fps += 2
 
-    def control(self):
-        # if hand_pos_x - 165 > 0 and hand_pos_x + 165 < WIDTH:
-        #     self.paddle.centerx = hand_pos_x
-        #     self.paddle_collision.centerx = hand_pos_x
-        # else:
-        #     if hand_pos_x > WIDTH / 2:
-        #         self.paddle.centerx = WIDTH - 165
-        #         self.paddle_collision.centerx = WIDTH - 165
-        #     else:
-        #         self.paddle.centerx = 165
-        #         self.paddle_collision.centerx = 165
+    def control(self, hand_pos_x):
+        if hand_pos_x - (self.paddle_w // 2) > self.left and hand_pos_x + (self.paddle_w // 2) < WIDTH - self.left - 12:
+            self.paddle.centerx = hand_pos_x
+            self.paddle_collision.centerx = hand_pos_x
+        else:
+            if hand_pos_x > WIDTH / 2:
+                self.paddle.centerx = self.left - (self.paddle_w // 2)
+                self.paddle_collision.centerx = self.left - (self.paddle_w // 2)
+            else:
+                self.paddle.centerx = self.left + (self.paddle_w // 2)
+                self.paddle_collision.centerx = self.left + (self.paddle_w // 2)
 
-        if keyboard.is_pressed('Left') and self.paddle.left > self.left:
-            self.paddle.left -= self.paddle_speed
-        if keyboard.is_pressed('Right') and self.paddle.right < WIDTH - self.left - 12:
-            self.paddle.right += self.paddle_speed
+        # if keyboard.is_pressed('Left') and self.paddle.left > self.left:
+        #     self.paddle.left -= self.paddle_speed
+        # if keyboard.is_pressed('Right') and self.paddle.right < WIDTH - self.left - 12:
+        #     self.paddle.right += self.paddle_speed
 
     def win_game_over(self):
         if self.ball.bottom > HEIGHT - self.top:
-            print('GAME OVER!')
-            time.sleep(3)
-            sys.exit()
+            db.win_or_lose = 2
         elif not len(self.block_list):
-            print('WIN!!!')
-            time.sleep(3)
-            sys.exit()
+            db.win_or_lose = 1
 
     def run(self):
         # control
@@ -138,3 +134,4 @@ class Arcanoid:
     def delay(self):
         # draw
         self.draw()
+        # self.control()

@@ -4,9 +4,9 @@ screen = None
 fps = 60
 seconds = 0
 
-data_from_arduino = ""
+data_from_arduino = "video"
 
-step = 0
+step = "wait"
 
 # Коэффициенты
 k_screen = 0.8
@@ -19,3 +19,10 @@ game = False
 rule = True
 pause = False
 hand_start = False
+was_init = False
+
+can_play = True
+can_hand_one = True
+hand_here = True
+off = True
+push = False

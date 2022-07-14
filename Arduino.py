@@ -1,5 +1,6 @@
 from serial import Serial
 import DataBase as db
+import time
 
 
 class Serial_Arduino:
@@ -7,10 +8,13 @@ class Serial_Arduino:
         self.ser = Serial("COM7", 19200)
 
     def push(self):
+        print("push")
         self.ser.write('1'.encode())
 
     def pull(self):
+        print("wait")
         db.data_from_arduino = str(self.ser.readline()).split("b'")[1].split("\\r\\n")[0]
+        print(db.data_from_arduino)
 
 # ser = Serial("COM7", 19200)
 # data = str(ser.readline()).split("b'")

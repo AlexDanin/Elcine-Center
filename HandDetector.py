@@ -7,7 +7,10 @@ from random import choice as ch
 
 class Hand:
     def __init__(self):
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(1)
+        # self.cap.set(3, 1000)
+        # self.cap.set(4, 500)
+
         self.detector_multy = HandDetector(detectionCon=0.8, maxHands=20)
         self.detector_one = HandDetector(detectionCon=0.6, maxHands=1)
         self.hand_index = 0
@@ -21,11 +24,13 @@ class Hand:
 
         self.picture_hand = cv2.imread("img\pointing-up.png", -1)
 
+        self.img = cv2.imread("img\pointing-up.png", -1)
+
     def detect_all(self):
-        while True:
-            success, img = self.cap.read()
-            img = cv2.flip(img, 1)
-            hands = self.detector_multy.findHands(img, draw=False, flipType=False)
+        # while True:
+            success, self.img = self.cap.read()
+            self.img = cv2.flip(self.img, 1)
+            hands = self.detector_multy.findHands(self.img, draw=False, flipType=False)
 
             if hands:
                 print(hands)
@@ -36,7 +41,7 @@ class Hand:
                         self.hand_index = i
                         db.hand_start = True
                         self.hand_lst = hands[i]['bbox']
-                        self.hand_img = img[self.hand_lst[1] - 10: self.hand_lst[1] + self.hand_lst[3] + 10,
+                        self.hand_img = self.img[self.hand_lst[1] - 10: self.hand_lst[1] + self.hand_lst[3] + 10,
                                         self.hand_lst[0] - 10: self.hand_lst[0] + self.hand_lst[2] + 10]
                     else:
                         scr = cv2.resize(self.picture_hand,
@@ -54,47 +59,57 @@ class Hand:
                             alpha_l = 1.0 - alpha_s
 
                             for c in range(0, 3):
-                                img[y1:y2, x1:x2, c] = (alpha_s * scr[:, :, c] +
-                                                        alpha_l * img[y1:y2, x1:x2, c])
+                                self.img[y1:y2, x1:x2, c] = (alpha_s * scr[:, :, c] +
+                                                        alpha_l * self.img[y1:y2, x1:x2, c])
                         except Exception:
                             pass
 
                         # img[hands[i]['bbox'][1] - 10: hands[i]['bbox'][1] + hands[i]['bbox'][3] + 10,
                         # hands[i]['bbox'][0] - 10: hands[i]['bbox'][0] + hands[i]['bbox'][2] + 10] = scr
-
-                #   fps = self.cap.get(cv2.cv2.CAP_PROP_FPS)
-                fps = self.cap.get(cv2.cv2.CAP_PROP_FPS)
+                # fps = self.cap.get(cv2.cv2.CAP_PROP_FPS)
                 # print(fps)
-            cv2.imshow("qwerty", img)
-            key = cv2.waitKey(1)
-            if key == ord('q'):
-                break
-            if db.hand_start:
-                break
+                #   fps = self.cap.get(cv2.cv2.CAP_PROP_FPS)
+
+                db.hand_here = True
+            else:
+                db.hand_here = False
+
+            # cv2.imshow("qwerty", self.img)
+            # key = cv2.waitKey(1)
+            # if key == ord('q'):
+            #     break
+            # if db.hand_start:
+            #     break
 
     def detect_one(self):
-        while True:
-            success, img = self.cap.read()
-            img = cv2.flip(img, 1)
+        # while True:
+            success, self.img = self.cap.read()
+            self.img = cv2.flip(self.img, 1)
             if db.hand_start:
-                img = cv2.blur(img, (50, 50))
-                img[self.hand_lst[1] - 10: self.hand_lst[1] + self.hand_lst[3] + 10,
+                self.img = cv2.blur(self.img, (50, 50))
+                self.img[self.hand_lst[1] - 10: self.hand_lst[1] + self.hand_lst[3] + 10,
                 self.hand_lst[0] - 10: self.hand_lst[0] + self.hand_lst[2] + 10] = self.hand_img
-            hand, img = self.detector_one.findHands(img, flipType=False)
+            hand, self.img = self.detector_one.findHands(self.img, flipType=False)
             if hand:
                 db.hand = hand[0]
                 db.hand_start = False
+                db.hand_here = True
+            else:
+                db.hand_here = False
 
                 # fps = self.cap.get(cv2.cv2.CAP_PROP_FPS)
                 # print(fps)
 
                 # cv2.circle(img, (self.get_pos_finger()[0], self.get_pos_finger()[1]), 10, (200, 0, 200), cv2.FILLED)
 
-            cv2.imshow("qwerty", img)
-            key = cv2.waitKey(1)
-            if key == ord('q'):
-                break
-        self.cap.release()
+            # cv2.imshow("qwerty", self.img)
+            # key = cv2.waitKey(1)
+            # if key == ord('q'):
+            #     break
+        # self.cap.release()
+
+    def get_img(self):
+        return self.img
 
     # def get_pos_finger(self):
     #     return db.hand['lmList'][8][:2]
