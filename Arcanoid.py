@@ -10,12 +10,25 @@ import keyboard
 
 class Arcanoid:
     def __init__(self):
+        pygame.mixer.init()
+        self.pong_sound = pygame.mixer.Sound("music/Pong.wav")
+        self.crush_sound = pygame.mixer.Sound('music/Crush.wav')
+        self.fall_sound = pygame.mixer.Sound('music/Fall.wav')
+        self.wall_sound = pygame.mixer.Sound('music/Wall.wav')
+        self.menu_sound = pygame.mixer.Sound('music/menu.mp3')
+
+        self.quotient_h = db.HEIGHT / db.cam_h
+        self.quotient_w = db.WIDTH / db.cam_w
+
         self.h = db.HEIGHT * db.k_screen
         self.w = self.h * 1.5
 
         self.left = (db.WIDTH - self.w) // 2
         self.top = (db.HEIGHT - self.h) // 2
         print(self.w, self.h, self.left, self.top)
+
+        self.minimum_distance = 25
+        self.maximum_distance = 100
 
         # blocks settings
         self.block_w = self.w // 10
@@ -47,12 +60,42 @@ class Arcanoid:
                                 self.ball_rect)
         self.dx, self.dy = 1, -1
 
+        pygame.font.init()
+        self.font_timer_game = pygame.font.Font(None, 200)
+        self.font_lose = pygame.font.Font(None, 150)
+        self.font_win = pygame.font.Font(None, 150)
+        self.clock = pygame.time.Clock()
+
+    def gif(self):
+        db.screen.fill((0, 0, 0))
+
+        dog_surf = pygame.image.load(db.img)
+        scale = pygame.transform.scale(
+            dog_surf, (dog_surf.get_width() * 3,
+                       dog_surf.get_height() * 3))
+        scale_rect = scale.get_rect(
+            center=(db.WIDTH // 2, db.HEIGHT // 2))
+        db.screen.blit(scale, scale_rect)
+        pygame.display.flip()
+
+    def init(self):
+        pygame.init()
+        db.screen = pygame.display.set_mode((db.WIDTH, db.HEIGHT))
+
+    def quit(self):
+        pygame.display.quit()
+
     def draw(self):
         pygame.draw.rect(db.screen, (255, 255, 255),
                          (int(self.left - 20), int(self.top - 20), int(self.w + 40), int(self.h + 40)), 1)
         [pygame.draw.rect(db.screen, self.color_list[color], block) for color, block in enumerate(self.block_list)]
         pygame.draw.rect(db.screen, pygame.Color('darkorange'), self.paddle)
         pygame.draw.circle(db.screen, pygame.Color('white'), self.ball.center, self.ball_radius)
+        try:
+            pygame.draw.circle(db.screen, pygame.Color('yellow'),
+                               (db.hand[0] * self.quotient_w, db.hand[1] * self.quotient_h), self.block_h * 0.1)
+        except Exception:
+            pass
 
     def detect_collision(self, dx, dy, ball, rect):
         if dx > 0:
@@ -80,15 +123,19 @@ class Arcanoid:
         # collision left right
         if self.ball.centerx < self.ball_radius + self.left or self.ball.centerx > WIDTH - self.ball_radius - self.left:
             self.dx = -self.dx
+            self.wall_sound.play()
         # collision top
         if self.ball.centery < self.ball_radius + self.top:
             self.dy = -self.dy
+            self.wall_sound.play()
         # collision paddle
         if self.ball.colliderect(self.paddle) and self.dy > 0:
             self.dx, self.dy = self.detect_collision(self.dx, self.dy, self.ball, self.paddle)
+            self.pong_sound.play()
         # collision blocks
         hit_index = self.ball.collidelist(self.block_list)
         if hit_index != -1:
+            self.crush_sound.play()
             hit_rect = self.block_list.pop(hit_index)
             hit_color = self.color_list.pop(hit_index)
             self.dx, self.dy = self.detect_collision(self.dx, self.dy, self.ball, hit_rect)
@@ -97,17 +144,37 @@ class Arcanoid:
             pygame.draw.rect(db.screen, hit_color, hit_rect)
             db.fps += 2
 
-    def control(self, hand_pos_x):
-        if hand_pos_x - (self.paddle_w // 2) > self.left and hand_pos_x + (self.paddle_w // 2) < WIDTH - self.left - 12:
-            self.paddle.centerx = hand_pos_x
-            self.paddle_collision.centerx = hand_pos_x
-        else:
-            if hand_pos_x > WIDTH / 2:
-                self.paddle.centerx = self.left - (self.paddle_w // 2)
-                self.paddle_collision.centerx = self.left - (self.paddle_w // 2)
-            else:
-                self.paddle.centerx = self.left + (self.paddle_w // 2)
-                self.paddle_collision.centerx = self.left + (self.paddle_w // 2)
+    def follow_me(self, pops, fpos):
+        target_vector = pygame.math.Vector2(*pops)
+        follower_vector = pygame.math.Vector2(*fpos)
+        new_follower_vector = pygame.math.Vector2(*fpos)
+
+        distance = follower_vector.distance_to(target_vector)
+        if distance > self.minimum_distance:
+            direction_vector = (target_vector - follower_vector) / distance
+            min_step = max(0, int(distance - self.maximum_distance))
+            max_step = distance - self.minimum_distance
+            step_distance = min_step + (max_step - min_step) * 0.1
+            new_follower_vector = follower_vector + direction_vector * step_distance
+
+        return new_follower_vector.x
+
+    def control(self, hand_pos):
+        if hand_pos[0] - (self.paddle_w // 2) > self.left and hand_pos[0] + (
+                self.paddle_w // 2) < WIDTH - self.left - 12:
+            self.paddle.centerx = self.follow_me(hand_pos, (self.paddle.centerx, self.paddle.centery))
+            self.paddle_collision.centerx = hand_pos[0]
+
+        # if hand_pos_x - (self.paddle_w // 2) > self.left and hand_pos_x + (self.paddle_w // 2) < WIDTH - self.left - 12:
+        #     self.paddle.centerx = hand_pos_x
+        #     self.paddle_collision.centerx = hand_pos_x
+        # else:
+        #     if hand_pos_x > WIDTH / 2:
+        #         self.paddle.centerx = self.left - (self.paddle_w // 2)
+        #         self.paddle_collision.centerx = self.left - (self.paddle_w // 2)
+        #     else:
+        #         self.paddle.centerx = self.left + (self.paddle_w // 2)
+        #         self.paddle_collision.centerx = self.left + (self.paddle_w // 2)
 
         # if keyboard.is_pressed('Left') and self.paddle.left > self.left:
         #     self.paddle.left -= self.paddle_speed
@@ -116,22 +183,76 @@ class Arcanoid:
 
     def win_game_over(self):
         if self.ball.bottom > HEIGHT - self.top:
+            self.fall_sound.play()
             db.win_or_lose = 2
         elif not len(self.block_list):
+            self.fall_sound.play()
             db.win_or_lose = 1
 
+    def draw_game_over(self):
+        db.screen.fill((0, 0, 0))
+        pygame.draw.rect(db.screen, (255, 255, 255),
+                         (int(self.left - 20), int(self.top - 20), int(self.w + 40), int(self.h + 40)), 1)
+        text = self.font_lose.render("Game Over", True, (255, 100, 100))
+        scale_rect = text.get_rect(
+            center=(db.WIDTH // 2, db.HEIGHT // 2))
+        db.screen.blit(text, scale_rect)
+        pygame.display.flip()
+        time.sleep(3)
+
+    def draw_win(self):
+        db.screen.fill((0, 0, 0))
+        pygame.draw.rect(db.screen, (255, 255, 255),
+                         (int(self.left - 20), int(self.top - 20), int(self.w + 40), int(self.h + 40)), 1)
+        text = self.font_win.render("Win", True, (100, 255, 100))
+        scale_rect = text.get_rect(
+            center=(db.WIDTH // 2, db.HEIGHT // 2))
+        db.screen.blit(text, scale_rect)
+        pygame.display.flip()
+        time.sleep(3)
+
+    def draw_off(self):
+        db.screen.fill((0, 0, 0))
+        pygame.draw.rect(db.screen, (255, 255, 255),
+                         (int(self.left - 20), int(self.top - 20), int(self.w + 40), int(self.h + 40)), 1)
+        text = self.font_win.render("OFF", True, (255, 0, 0))
+        scale_rect = text.get_rect(
+            center=(db.WIDTH // 2, db.HEIGHT // 2))
+        db.screen.blit(text, scale_rect)
+        pygame.display.flip()
+        time.sleep(3)
+
+    def timer_start(self):
+        if not db.game:
+            text = self.font_timer_game.render(str(db.seconds), True, (255, 255, 255))
+            db.screen.blit(text, (db.WIDTH // 2 - 50, db.HEIGHT // 2 - 100))
+
     def run(self):
-        # control
-        # self.control(8)
-        # draw
-        self.draw()
-        # ball movement
-        self.ball_movement()
-        self.ball_collision()
-        # win, game over
-        self.win_game_over()
+        while db.can_play:
+            # print(self.clock.get_fps())
+            db.screen.fill((0, 0, 0))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+            # control
+            self.control((db.hand[0] * self.quotient_w, db.hand[1]))
+            # draw
+            self.draw()
+            # ball movement
+            self.ball_movement()
+            self.ball_collision()
+            # win, game over
+            self.win_game_over()
+
+            pygame.display.flip()
+            self.clock.tick(db.fps)
 
     def delay(self):
-        # draw
-        self.draw()
-        # self.control()
+        while not db.game:
+            # print(self.clock.get_fps())
+            db.screen.fill((0, 0, 0))
+            self.draw()
+            self.timer_start()
+            pygame.display.flip()
+            self.clock.tick(db.fps)
+            # self.control()
