@@ -5,7 +5,7 @@ import time
 
 class Serial_Arduino:
     def __init__(self):
-        self.ser = Serial("COM7", 19200)
+        self.ser = Serial("COM4", 19200)
 
     def push(self):
         print("push")

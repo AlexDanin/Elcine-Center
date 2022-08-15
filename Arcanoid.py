@@ -17,8 +17,9 @@ class Arcanoid:
         self.wall_sound = pygame.mixer.Sound('music/Wall.wav')
         self.menu_sound = pygame.mixer.Sound('music/menu.mp3')
 
-        self.quotient_h = db.HEIGHT / db.cam_h
-        self.quotient_w = db.WIDTH / db.cam_w
+        print(db.cam_h, db.cam_w)
+        self.quotient_h = db.HEIGHT // db.cam_h + 1
+        self.quotient_w = db.WIDTH // db.cam_w + 1
 
         self.h = db.HEIGHT * db.k_screen
         self.w = self.h * 1.5
@@ -61,9 +62,9 @@ class Arcanoid:
         self.dx, self.dy = 1, -1
 
         pygame.font.init()
-        self.font_timer_game = pygame.font.Font(None, 200)
-        self.font_lose = pygame.font.Font(None, 150)
-        self.font_win = pygame.font.Font(None, 150)
+        self.font_timer_game = pygame.font.Font(None, 250)
+        self.font_lose = pygame.font.Font(None, 350)
+        self.font_win = pygame.font.Font(None, 350)
         self.clock = pygame.time.Clock()
 
     def gif(self):
@@ -71,8 +72,8 @@ class Arcanoid:
 
         dog_surf = pygame.image.load(db.img)
         scale = pygame.transform.scale(
-            dog_surf, (dog_surf.get_width() * 3,
-                       dog_surf.get_height() * 3))
+            dog_surf, (dog_surf.get_width() * 5,
+                       dog_surf.get_height() * 5))
         scale_rect = scale.get_rect(
             center=(db.WIDTH // 2, db.HEIGHT // 2))
         db.screen.blit(scale, scale_rect)
@@ -142,7 +143,6 @@ class Arcanoid:
             # special effect
             hit_rect.inflate_ip(self.ball.width * 3, self.ball.height * 3)
             pygame.draw.rect(db.screen, hit_color, hit_rect)
-            db.fps += 2
 
     def follow_me(self, pops, fpos):
         target_vector = pygame.math.Vector2(*pops)

@@ -45,3 +45,5 @@ class Timer:
             db.img = db.gif[i % len(db.gif)]
             i += 1
             sl(0.2)
+
+

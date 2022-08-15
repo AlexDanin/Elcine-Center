@@ -1,7 +1,7 @@
-WIDTH, HEIGHT = 1200, 800
+WIDTH, HEIGHT = 1600, 1200
 hand = (200, 1)
 screen = None
-fps = 60
+fps = 50
 seconds = 0
 
 cam_h = 640
@@ -26,7 +26,7 @@ win_or_lose = 0
 
 # =====  BOOL  =========
 game = False
-rule = True
+lost = True
 pause = False
 hand_start = False
 was_init = False
