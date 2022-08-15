@@ -4,20 +4,31 @@ from HandDetector import *
 from Arduino import *
 from Timers import *
 
-
 hand = Hand()
 arc = Arcanoid()
 serial_port = Serial_Arduino()
 timer = Timer()
 
+
+# def music_off():
+#     while 1:
+#         serial_port.pull()
+#
+#
+# t9 = Thread(target=music_off)
+# t9.start()
+
+
 while 1:
     # fps = hand.cap.get(cv2.cv2.CAP_PROP_FPS)
     # print(fps)
+    # if db.data_from_arduino == "video":
+    #     arc.menu_sound.stop()
     if db.step == "wait":
-        if db.data_from_arduino == "video":
-            serial_port.pull()
-            if db.data_from_arduino == "game":
-                db.step = "init"
+        # if db.data_from_arduino == "video":
+        serial_port.pull()
+        if db.data_from_arduino == "game":
+            db.step = "init"
     elif db.step == "init":
         arc.init()
         db.step = "init_game"
@@ -34,6 +45,7 @@ while 1:
         arc.menu_sound.play()
         db.step = "gif"
     elif db.step == "gif":
+        db.wait = True
         arc.gif()
         hand.detect_all()
         if db.hand_start:
@@ -42,13 +54,17 @@ while 1:
             t3.start()
             t4 = Thread(target=arc.delay)
             t4.start()
-            arc.menu_sound.stop()
             db.step = "delay"
             db.wait = False
+            arc.menu_sound.stop()
 
         if not db.hand_here and not db.off:
+            arc.menu_sound.stop()
             db.step = "timer_off"
+            db.wait = False
             db.off = True
+            db.can_play = False
+            db.game = False
         elif db.hand_here:
             db.off = False
     elif db.step == "delay":
@@ -74,7 +90,7 @@ while 1:
 
         if not db.hand_here and not db.off:
             db.step = "init_gif"
-            db.wait = True
+            db.wait = False
             db.off = True
             db.can_play = False
             db.game = False
@@ -82,7 +98,7 @@ while 1:
             db.off = False
 
     elif db.step == "win":
-        db.wait = True
+        db.wait = False
         db.off = True
         db.can_play = False
         db.game = False
@@ -90,7 +106,7 @@ while 1:
         db.step = "init_game"
         db.win_or_lose = 0
     elif db.step == "lose":
-        db.wait = True
+        db.wait = False
         db.off = True
         db.can_play = False
         db.game = False
@@ -99,6 +115,7 @@ while 1:
         db.win_or_lose = 0
 
     if db.push:
+        arc.menu_sound.stop()
         print("qdfjydfjutgrjn64")
         arc.draw_off()
         serial_port.push()
@@ -108,7 +125,7 @@ while 1:
         db.data_from_arduino = "video"
         db.game = False
         db.hand_start = False
-        db.wait = True
+        db.wait = False
         db.can_play = True
         db.hand_here = True
         db.off = True
