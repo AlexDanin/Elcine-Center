@@ -1,28 +1,24 @@
-#define BUTTON_PIN 2
-#define LED_PIN_1 13
-#define LED_PIN_2 12
-
-boolean buttonWasUp = true;
-boolean isStart = false;
+int BUTTON_PIN = 2;
+int LED_PIN_1 = 8;
+int LED_PIN_2 = 12;
+int button_value = 0;
+int old_button_value = 0;
 
 char request;
+
+boolean isStart = false;
 
 void setup() {
   pinMode(LED_PIN_1, OUTPUT);
   pinMode(LED_PIN_2, OUTPUT);
   pinMode(BUTTON_PIN, INPUT);
-
   Serial.begin(19200);
 }
 
 void loop() {
-  boolean buttonIsUp = digitalRead(BUTTON_PIN);
-
-  if (buttonWasUp && !buttonIsUp) {
-    delay(10);
-    buttonIsUp = digitalRead(BUTTON_PIN);
-    if (!buttonIsUp) {
-      isStart = !isStart;
+  button_value = digitalRead(BUTTON_PIN);
+  if (button_value != old_button_value) {
+    isStart = !isStart;
       onSignal(isStart);
       if (isStart){
         Serial.println("game");
@@ -30,9 +26,9 @@ void loop() {
       else if (!isStart){
         Serial.println("video");
       }
+    old_button_value = button_value;
     }
-  }
-  buttonWasUp = buttonIsUp;
+  
 
   if (Serial.available() > 0) {
     request = Serial.read();
@@ -42,6 +38,7 @@ void loop() {
       onSignal(isStart);
     }
   }
+  
 }
 
 void onSignal(bool flag){
