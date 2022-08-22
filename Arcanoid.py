@@ -76,6 +76,7 @@ class Arcanoid:
                        dog_surf.get_height() * 5))
         scale_rect = scale.get_rect(
             center=(db.WIDTH // 2, db.HEIGHT // 2))
+        # print(db.img)
         db.screen.blit(scale, scale_rect)
         pygame.display.flip()
 

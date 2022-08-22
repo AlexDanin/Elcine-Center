@@ -7,7 +7,7 @@ seconds = 0
 cam_h = 640
 cam_w = 480
 
-data_from_arduino = "video"
+data_from_arduino = ""
 
 step = "wait"
 

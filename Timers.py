@@ -41,7 +41,9 @@ class Timer:
 
     def timer_gif(self):
         i = 0
+        print(db.img)
         while db.wait:
+
             db.img = db.gif[i % len(db.gif)]
             i += 1
             sl(0.2)

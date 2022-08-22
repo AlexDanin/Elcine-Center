@@ -10,23 +10,24 @@ serial_port = Serial_Arduino()
 timer = Timer()
 
 
-# def music_off():
-#     while 1:
-#         serial_port.pull()
-#
-#
-# t9 = Thread(target=music_off)
-# t9.start()
+def music_off():
+    while 1:
+        serial_port.pull()
+
+
+t9 = Thread(target=music_off)
+t9.start()
 
 
 while 1:
     # fps = hand.cap.get(cv2.cv2.CAP_PROP_FPS)
     # print(fps)
-    # if db.data_from_arduino == "video":
-    #     arc.menu_sound.stop()
+    if db.data_from_arduino == "video":
+        arc.menu_sound.stop()
+        db.step = "wait"
     if db.step == "wait":
         # if db.data_from_arduino == "video":
-        serial_port.pull()
+        # serial_port.pull()
         if db.data_from_arduino == "game":
             db.step = "init"
     elif db.step == "init":
@@ -36,16 +37,17 @@ while 1:
         arc.__init__()
         db.step = "init_gif"
     elif db.step == "init_gif":
+        db.wait = True
         t1 = Thread(target=timer.timer_gif)
         t1.start()
+        arc.menu_sound.play()
         db.step = "timer_off"
     elif db.step == "timer_off":
         t2 = Thread(target=timer.timer_off)
         t2.start()
-        arc.menu_sound.play()
+        db.wait = True
         db.step = "gif"
     elif db.step == "gif":
-        db.wait = True
         arc.gif()
         hand.detect_all()
         if db.hand_start:
@@ -59,15 +61,14 @@ while 1:
             arc.menu_sound.stop()
 
         if not db.hand_here and not db.off:
-            arc.menu_sound.stop()
             db.step = "timer_off"
-            db.wait = False
             db.off = True
             db.can_play = False
             db.game = False
         elif db.hand_here:
             db.off = False
     elif db.step == "delay":
+        db.wait = False
         hand.detect_one()
         if db.game:
             db.step = "game"
@@ -90,7 +91,6 @@ while 1:
 
         if not db.hand_here and not db.off:
             db.step = "init_gif"
-            db.wait = False
             db.off = True
             db.can_play = False
             db.game = False
@@ -122,7 +122,10 @@ while 1:
         arc.quit()
         hand.quit()
         db.step = "wait"
-        db.data_from_arduino = "video"
+        db.data_from_arduino = ""
+        # t1.join()
+        # t2.join()
+        # t3.join()
         db.game = False
         db.hand_start = False
         db.wait = False

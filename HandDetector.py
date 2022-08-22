@@ -27,9 +27,9 @@ class Hand:
         self.img = 0
 
     def detect_all(self):
-        # while 1:
+        #while 1:
             success, self.img = self.cap.read()
-            self.img = cv2.flip(self.img, 1)
+            self.img = cv2.flip(self.img, 0)
             hands = self.detector_multy.findHands(self.img, draw=False, flipType=False)
 
             if hands:
@@ -74,15 +74,15 @@ class Hand:
             else:
                 db.hand_here = False
 
-            cv2.imshow("qwerty", self.img)
-            key = cv2.waitKey(1)
-            if key == ord('q'):
-                pass
+            # cv2.imshow("qwerty", self.img)
+            # key = cv2.waitKey(1)
+            # if key == ord('q'):
+            #     pass
 
     def detect_one(self):
         # while 1:
         success, self.img = self.cap.read()
-        self.img = cv2.flip(self.img, 1)
+        self.img = cv2.flip(self.img, 0)
         if db.hand_start:
             self.img = cv2.blur(self.img, (100, 100))
             self.img[self.hand_lst[1] - 10: self.hand_lst[1] + self.hand_lst[3] + 10,
@@ -98,10 +98,10 @@ class Hand:
 
             # cv2.circle(img, (self.get_pos_finger()[0], self.get_pos_finger()[1]), 10, (200, 0, 200), cv2.FILLED)
 
-        cv2.imshow("qwerty", self.img)
-        key = cv2.waitKey(1)
-        if key == ord('q'):
-            pass
+        # cv2.imshow("qwerty", self.img)
+        # key = cv2.waitKey(1)
+        # if key == ord('q'):
+        #     pass
 
     # self.cap.release()
 
