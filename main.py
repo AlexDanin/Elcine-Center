@@ -24,12 +24,15 @@ while 1:
     # print(fps)
     if db.data_from_arduino == "video":
         arc.menu_sound.stop()
+        db.timer_off = False
+        db.wait = False
         db.step = "wait"
     if db.step == "wait":
         # if db.data_from_arduino == "video":
         # serial_port.pull()
         if db.data_from_arduino == "game":
             db.step = "init"
+            db.timer_off = True
     elif db.step == "init":
         arc.init()
         db.step = "init_game"

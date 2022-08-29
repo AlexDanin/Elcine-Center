@@ -36,3 +36,5 @@ can_hand_one = True
 hand_here = True
 off = True
 push = False
+
+timer_off = True

@@ -20,7 +20,7 @@ class Timer:
 
     def timer_off(self):
         i = 10
-        while i > 0:
+        while i > 0 and db.timer_off:
             if db.off:
                 i -= 1
                 sl(1)
